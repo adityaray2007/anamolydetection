@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sentinel — Surveillance Dashboard</title>
+    <meta name="description" content="AI-powered surveillance system with face recognition and hazard detection">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Ambient background effects -->
+    <div class="ambient-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="top-bar" id="topBar">
+        <div class="top-bar-left">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">AI SENTINEL</span>
+            </div>
+            <div class="nav-divider"></div>
+            <div class="system-status" id="systemStatus">
+                <span class="status-dot active"></span>
+                <span class="status-text">System Active</span>
+            </div>
+        </div>
+        <div class="top-bar-right">
+            <div class="stat-chip" id="faceCountChip">
+                <span class="chip-icon">👥</span>
+                <span class="chip-value" id="faceCount">0</span>
+                <span class="chip-label">Registered</span>
+            </div>
+            <div class="stat-chip" id="alertCountChip">
+                <span class="chip-icon">🔔</span>
+                <span class="chip-value" id="alertCount">0</span>
+                <span class="chip-label">Alerts</span>
+            </div>
+            <div class="stat-chip critical-chip" id="criticalChip" style="display:none">
+                <span class="chip-icon">⚠️</span>
+                <span class="chip-value" id="criticalCount">0</span>
+                <span class="chip-label">Critical</span>
+            </div>
+            <button class="btn-icon" id="settingsBtn" title="Settings" onclick="toggleSettings()">
+                ⚙️
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard">
+        <!-- Left Column: Live Feed -->
+        <section class="panel feed-panel" id="feedPanel">
+            <div class="panel-header">
+                <h2 class="panel-title">
+                    <span class="pulse-dot"></span>
+                    Live Camera Feed
+                </h2>
+                <div class="panel-actions">
+                    <span class="camera-status" id="cameraStatus">Connecting...</span>
+                    <button class="btn-sm btn-primary" onclick="toggleCamera()" title="Switch Camera" id="cameraToggleBtn">📱 DroidCam</button>
+                    <button class="btn-sm" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+                </div>
+            </div>
+            <div class="feed-container" id="feedContainer">
+                <img id="videoFeed" src="/video_feed" alt="Live Camera Feed" class="video-feed" />
+                <div class="feed-overlay" id="feedOverlay">
+                    <div class="feed-overlay-info">
+                        <span id="feedTimestamp"></span>
+                        <span id="feedFPS"></span>
+                    </div>
+                </div>
+                <div class="recording-indicator" id="recordingIndicator" style="display:none">
+                    <span class="rec-dot"></span> REC
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Panels -->
+        <aside class="side-panels">
+            <!-- Alert Panel -->
+            <section class="panel alert-panel" id="alertPanel">
+                <div class="panel-header">
+                    <h2 class="panel-title">🔔 Alerts</h2>
+                    <div class="panel-actions">
+                        <button class="btn-sm btn-danger" onclick="clearAlerts()">Clear All</button>
+                    </div>
+                </div>
+                <div class="alert-list" id="alertList">
+                    <div class="empty-state" id="noAlerts">
+                        <span class="empty-icon">✅</span>
+                        <p>No alerts — All clear</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Face Management Panel -->
+            <section class="panel face-panel" id="facePanel">
+                <div class="panel-header">
+                    <h2 class="panel-title">👥 Face Database</h2>
+                    <div class="panel-actions">
+                        <button class="btn-sm btn-primary" onclick="showAddFaceModal()">+ Add</button>
+                    </div>
+                </div>
+                <div class="face-list" id="faceList">
+                    <div class="empty-state" id="noFaces">
+                        <span class="empty-icon">📷</span>
+                        <p>No faces registered yet</p>
+                        <small>Add faces to enable recognition</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VLM Status Panel -->
+            <section class="panel vlm-panel" id="vlmPanel">
+                <div class="panel-header">
+                    <h2 class="panel-title">🧠 AI Analysis</h2>
+                </div>
+                <div class="vlm-status" id="vlmStatus">
+                    <div class="vlm-info-row">
+                        <span class="vlm-label">VLM Engine</span>
+                        <span class="vlm-value" id="vlmEngineStatus">Initializing...</span>
+                    </div>
+                    <div class="vlm-info-row">
+                        <span class="vlm-label">Face Engine</span>
+                        <span class="vlm-value" id="faceEngineStatus">Initializing...</span>
+                    </div>
+                    <div class="vlm-info-row">
+                        <span class="vlm-label">Last Analysis</span>
+                        <span class="vlm-value" id="lastAnalysis">—</span>
+                    </div>
+                    <div class="vlm-info-row">
+                        <span class="vlm-label">Scene Status</span>
+                        <span class="vlm-value" id="sceneStatus">—</span>
+                    </div>
+                    <div class="vlm-info-row">
+                        <span class="vlm-label">Last Face Match</span>
+                        <span class="vlm-value" id="faceMatchPreview">—</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recordings Panel -->
+            <section class="panel recordings-panel" id="recordingsPanel">
+                <div class="panel-header">
+                    <h2 class="panel-title">📹 Recordings</h2>
+                    <div class="panel-actions">
+                        <button class="btn-sm" onclick="refreshRecordings()">↻</button>
+                    </div>
+                </div>
+                <div class="recording-list" id="recordingList">
+                    <div class="empty-state" id="noRecordings">
+                        <span class="empty-icon">📁</span>
+                        <p>No recordings yet</p>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </main>
+
+    <!-- Add Face Modal -->
+    <div class="modal-overlay" id="addFaceModal" style="display:none">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Register New Face</h3>
+                <button class="btn-close" onclick="hideAddFaceModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="personName">Person's Name</label>
+                    <input type="text" id="personName" placeholder="Enter name..." class="input" autocomplete="off" />
+                </div>
+                
+                <div class="tab-container">
+                    <div class="tabs">
+                        <button class="tab-btn active" id="tabUploadBtn" onclick="switchFaceTab('upload')">📁 File Upload</button>
+                        <button class="tab-btn" id="tabLiveBtn" onclick="switchFaceTab('live')">📸 Live Capture</button>
+                    </div>
+                    
+                    <!-- File Upload Mode -->
+                    <div id="tabUploadMode" class="tab-content active">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Photo (clear face visible)</label>
+                            <div class="upload-area" id="uploadArea">
+                                <input type="file" id="faceImage" accept="image/*" class="file-input" onchange="previewImage(this)" />
+                                <div class="upload-placeholder" id="uploadPlaceholder">
+                                    <span class="upload-icon">📸</span>
+                                    <p>Click or drag to upload a photo</p>
+                                    <small>JPG, PNG — clear face required</small>
+                                </div>
+                                <img id="imagePreview" class="image-preview" style="display:none" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Live Capture Mode -->
+                    <div id="tabLiveMode" class="tab-content">
+                        <div class="live-capture-container">
+                            <div class="mini-feed-wrapper">
+                                <img id="miniVideoFeed" src="" alt="Live Feed" class="mini-feed" />
+                            </div>
+                            <div class="capture-controls">
+                                <p class="capture-instruction">Look at the camera and capture multiple angles (Front, Left, Right).</p>
+                                <button class="btn btn-primary" onclick="captureLiveFace()" id="captureLiveBtn" style="width: 100%;">📸 Capture Frame</button>
+                                <div class="capture-badge" id="captureBadge" style="display: none;">Captures: <span id="captureCount">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <button class="btn btn-secondary" onclick="hideAddFaceModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="addFace()" id="addFaceBtn">Upload & Register</button>
+                <button class="btn btn-primary" onclick="hideAddFaceModal(); loadFaces();" id="doneLiveBtn" style="display:none;">Done Registration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel (slide-out) -->
+    <div class="settings-overlay" id="settingsOverlay" style="display:none">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h3>⚙️ Settings</h3>
+                <button class="btn-close" onclick="toggleSettings()">✕</button>
+            </div>
+            <div class="settings-body">
+                <div class="form-group">
+                    <label for="cameraUrl">Camera URL (DroidCam)</label>
+                    <input type="text" id="cameraUrl" class="input" placeholder="http://192.168.1.100:4747/video" />
+                    <small class="input-help">DroidCam WiFi URL format: http://PHONE_IP:4747/video</small>
+                </div>
+                <div class="form-group">
+                    <label for="faceThreshold">Face Recognition Threshold</label>
+                    <input type="range" id="faceThreshold" min="0.1" max="0.6" step="0.05" value="0.2" class="range-input" />
+                    <span id="thresholdValue" class="range-value">0.20</span>
+                </div>
+                <div class="form-group">
+                    <label for="vlmInterval">VLM Analysis Interval (seconds)</label>
+                    <input type="number" id="vlmInterval" class="input" value="3" min="1" max="30" />
+                </div>
+                <div class="form-group">
+                    <label for="alertCooldown">Alert Cooldown (seconds)</label>
+                    <input type="number" id="alertCooldown" class="input" value="30" min="5" max="300" />
+                </div>
+                <button class="btn btn-primary" onclick="saveSettings()" style="width:100%; margin-top: 16px;">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Audio for alerts -->
+    <audio id="alertSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVggoeBdWBac4WNjo+Af2x3i5GKfnx8gYuLgnZue4WJhX12dn+FhoF5dHd+g4B7dnV5fX57d3R1eHp5dnN0dnh5dnN0dXd4dnRzdXZ3dnRzdHV2dXRzdHV1dXRzdHR1dXRzcnR0dHRzcnN0dHNzcnN0c3NycnNzc3JycnNzcnJxcnJycnFxcXJycXFxcXFxcXBxcXFxcHBwcXBwcHBwcHBwcHBwb3BwcG9vb3BvIG9vb29vb29vb29vb29ub29vb25ubm9ubm5ubm5ubm5ubW5ubm1tbW5tbW1tbW1tbW1tbWxtbW1sbGxtbGxsbGxsbGxsa2xsbGtrawA=" type="audio/wav">
+    </audio>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

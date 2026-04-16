@@ -1,0 +1,42 @@
+# Virtual Environments
+.venv/
+.venv311/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# AI Models & Large Files
+*.whl
+*.onnx
+*.pb
+
+# App Data & Privacy
+database/
+recordings/
+known_faces/
+surveillance.log
+temp/
+
+# IDEs & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Gemini/Agent data
+.gemini/
+
+node_modules/
+frontend/node_modules/
+.env
+.venv/
+__pycache__/
+dist/
+build/
+
+frontend/

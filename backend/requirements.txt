@@ -1,0 +1,7 @@
+# AI Sentinel - Dependencies
+flask
+opencv-python
+numpy
+requests
+insightface
+onnxruntime-gpu
